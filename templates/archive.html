@@ -3,13 +3,13 @@
 </head>
 <body>
 {{#grouped_entries}}
-{{ key }}
-{{#entries}}
+<h1>{{ Key }}</h1>
+{{#Entries}}
 <div id="entry_{{ id }}">
-<p>{{ message }}</p>
-<p>Happened on {{ when }}</p>
+<h2>{{ PrettyDate }}</h2>
+<p>{{ Message }}</p>
 </div>
-{{/entries}}
+{{/Entries}}
 {{/grouped_entries}}
 </body>
 </html>

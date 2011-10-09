@@ -12,8 +12,20 @@ type ListOEntries []Entry
 type GroupedEntries map[string]ListOEntries
 
 type Entry struct {
-	id, message string
-	when int64
+	Id, Message string
+	When int64
+}
+
+type EntryGroup struct {
+	Key string
+	Entries []Entry
+}
+
+func (entry Entry) PrettyDate() string {
+	utc_time := time.SecondsToLocalTime(entry.When)
+	value := utc_time.Format(time.RFC822)
+	log.Println(value)
+	return value
 }
 
 func storeEntry(id UUID, message string, tags []string) {
@@ -53,9 +65,9 @@ func getEntries() []Entry {
 	        break
 	    }
 		var entry Entry
-		entry.id = string([]uint8( row["id"].([]uint8)  ))
-		entry.message = string([]uint8( row["message"].([]uint8)  ))
-		entry.when = row["date"].(int64)
+		entry.Id = string([]uint8( row["id"].([]uint8)  ))
+		entry.Message = string([]uint8( row["message"].([]uint8)  ))
+		entry.When = row["date"].(int64)
 		entries[current] = entry
 		current++
 	}
@@ -82,7 +94,7 @@ func groupEntries(entries []Entry) map[string][]Entry {
 	// NKG: Every time we place an entry the default group list size shrinks.
 	count_down := len(entries)
 	for _, entry := range entries {
-		tod, utc_time := getTimeOfDay(entry.when)
+		tod, utc_time := getTimeOfDay(entry.When)
 		key := fmt.Sprintf("%d-%d-%d-%d", utc_time.Year, utc_time.Month, utc_time.Day, tod)
 		fmt.Println(key)
 		if group_entry, ok := groups[key]; ok {
@@ -132,11 +144,24 @@ func trimGroupedEntries(old_grouped_entries map[string][]Entry, meta_group_entri
 	return grouped_entries
 }
 
+func groupedEntriesToEntryGroups(entries map[string][]Entry) []EntryGroup {
+	entryGroupList := make([]EntryGroup, len(entries))
+	index := 0
+	for key, group_entries := range entries {
+		var entryGroup EntryGroup
+		entryGroup.Key = key
+		entryGroup.Entries = group_entries
+		entryGroupList[index] = entryGroup
+		index++
+	}
+	return entryGroupList
+}
+
 func dumpGroupedEntries(grouped_entries map[string][]Entry) {
 	for key, group_entries := range grouped_entries {
 		fmt.Println(key)
 		for index, entry := range group_entries {
-			fmt.Printf("#%d %s\n", index, entry.id)
+			fmt.Printf("#%d %s\n", index, entry.Id)
 		}
 	}
 }
