@@ -1,0 +1,1 @@
+When naming struct variables, those that start with a lowercase letter are not considered "exported". Found this out the hard way when the template was trying to access the PrettyDate Entry function but was complaining about entry.when in some reflection exception.
