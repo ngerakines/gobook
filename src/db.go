@@ -5,6 +5,7 @@ import (
 	// "github.com/Philio/GoMySQL"
 	"time"
 	"log"
+	"strings"
 )
 
 
@@ -37,6 +38,42 @@ func storeEntry(id UUID, message string, tags []string) {
 		return
 	}
 	if error := stmt.BindParams(id.String(), time.Seconds(), message, 0); error != nil {
+		log.Println(error)
+		return
+	}
+	if error := stmt.Execute(); error != nil {
+		log.Println(error)
+		return
+	}
+	for _, tag := range tags {
+		storeTag(id, tag)
+		storeReverseTag(id, tag)
+	}
+}
+
+func storeTag(entryId UUID, tag string) {
+	stmt, err := db.Prepare("insert into tags values (?, ?)")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	if error := stmt.BindParams(entryId.String(), tag); error != nil {
+		log.Println(error)
+		return
+	}
+	if error := stmt.Execute(); error != nil {
+		log.Println(error)
+		return
+	}
+}
+
+func storeReverseTag(entryId UUID, tag string) {
+	stmt, err := db.Prepare("insert into tags_reverse values (?, ?)")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	if error := stmt.BindParams(tag, entryId.String()); error != nil {
 		log.Println(error)
 		return
 	}
@@ -164,4 +201,37 @@ func dumpGroupedEntries(grouped_entries map[string][]Entry) {
 			fmt.Printf("#%d %s\n", index, entry.Id)
 		}
 	}
+}
+
+func trimTagList(old_tags []string, size int) []string {
+	entries := make([]string, size)
+	for i := 0; i < size; i++ {
+	        entries[i] = old_tags[i]
+	}
+	return entries
+}
+
+func findUntil(reader *strings.Reader, sep int) string {
+	result := ""
+	for {
+		rune, _, err := reader.ReadRune()
+		if err != nil {
+			break
+		}
+		if rune == sep {
+			break
+		}
+		result = result + string(rune)
+	}
+	return result
+}
+
+func bindRange(size, min, max int) int {
+	if size < min {
+		return size
+	}
+	if size > max {
+		return max
+	}
+	return size
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/Philio/GoMySQL"
 	"github.com/garyburd/twister/server"
 	"github.com/garyburd/twister/web"
-	"strings"
+	// "strings"
 	"log"
 	// "time"
 )
@@ -24,7 +24,7 @@ func displayIndex(req *web.Request) {
 func createEntry(req *web.Request) {
 	message := req.Param.Get("message")
 	extra := req.Param.Get("extra")
-	tags := strings.Fields(extra)
+	tags := splitTags(extra)
 	id := NewUUID()
 	storeEntry(id, message, tags)
 	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
