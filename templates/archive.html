@@ -1,0 +1,15 @@
+<html>
+<head>
+</head>
+<body>
+{{#grouped_entries}}
+{{ key }}
+{{#entries}}
+<div id="entry_{{ id }}">
+<p>{{ message }}</p>
+<p>Happened on {{ when }}</p>
+</div>
+{{/entries}}
+{{/grouped_entries}}
+</body>
+</html>
