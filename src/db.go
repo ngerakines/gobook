@@ -2,36 +2,40 @@ package main
 
 import (
 	"fmt"
-	// "github.com/Philio/GoMySQL"
 	"time"
 	"log"
-	"strings"
 )
 
+func getTags(id string) []string {
+	// NKG: Convert to prepared statement.
+	err := db.Query("select tag from tags where id = \"" + id + "\"")
+	if err != nil {
+		log.Println(err)
+	    return []string{}
+	}
+	result, err := db.UseResult()
+	if err != nil {
+		log.Println(err)
+	    return []string{}
+	}
+	tags := make([]string, 100)
+	tag_count := 0
+	for {
+	    row := result.FetchMap()
+	    if row == nil {
+	        break
+	    }
+		tag := string([]uint8( row["tag"].([]uint8)  ))
+		tags[tag_count] = tag
+		tag_count++
+	}
+	// NKG: Do I really have to fucking call this after every query?!
+	db.FreeResult()
 
-type ListOEntries []Entry
-type GroupedEntries map[string]ListOEntries
-
-type Entry struct {
-	Id, Message string
-	When int64
-}
-
-type EntryGroup struct {
-	Key string
-	Entries []Entry
-}
-
-func (entry Entry) PrettyDate() string {
-	utc_time := time.SecondsToLocalTime(entry.When)
-	value := utc_time.Format(time.RFC822)
-	log.Println(value)
-	return value
+	return trimTagList(tags, tag_count)
 }
 
 func storeEntry(id UUID, message string, tags []string) {
-	fmt.Println(message)
-	fmt.Println(tags)
 	stmt, err := db.Prepare("insert into entries values (?, ?, ?, ?)")
 	if err != nil {
 		log.Println(err)
@@ -176,9 +180,21 @@ func trimGroupedEntries(old_grouped_entries map[string][]Entry, meta_group_entri
 	grouped_entries := make(map[string][]Entry)
 	for key, group_entries := range old_grouped_entries {
 		size := meta_group_entries[key]
-		grouped_entries[key] = trimEntryList(group_entries, size)
+		grouped_entries[key] = reverseEntries(trimEntryList(group_entries, size))
 	}
 	return grouped_entries
+}
+
+func reverseEntries(old_entries []Entry) []Entry {
+	entries := make([]Entry, len(old_entries))
+	i := 0
+	j := len(old_entries) - 1;
+	for i < len(old_entries) {
+		entries[j] = old_entries[i]
+		i++
+		j--
+	}
+	return entries
 }
 
 func groupedEntriesToEntryGroups(entries map[string][]Entry) []EntryGroup {
@@ -209,29 +225,4 @@ func trimTagList(old_tags []string, size int) []string {
 	        entries[i] = old_tags[i]
 	}
 	return entries
-}
-
-func findUntil(reader *strings.Reader, sep int) string {
-	result := ""
-	for {
-		rune, _, err := reader.ReadRune()
-		if err != nil {
-			break
-		}
-		if rune == sep {
-			break
-		}
-		result = result + string(rune)
-	}
-	return result
-}
-
-func bindRange(size, min, max int) int {
-	if size < min {
-		return size
-	}
-	if size > max {
-		return max
-	}
-	return size
 }

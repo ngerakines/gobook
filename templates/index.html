@@ -1,85 +1,39 @@
-<html>
-    <head>
-        <title>Logbook</title>
-        <style>
-body {
-  text-align: center;
-  margin: 1em 0 0 0;
-  vertical-align: middle;
-  font-size: 26pt;
-  font-style: normal;
-  text-shadow: none;
-  text-decoration: none;
-  text-transform: none;
-  letter-spacing: 0;
-  word-spacing: 0;
-  /* line-height: 1.3em; */
-}
-#content {
-  width: 760px;
-  text-align: left;
-  margin: 1em auto;
-}
-        </style>
-    </head> 
-    <body onLoad="focus();someform.message.focus()">
-        <div id="content">
-<style>
-.wrapper {
-    padding-bottom: 1em;
-}
-.input {
-    position: relative;
-    display: inline-block;
-    height: 2em;
-    padding-bottom: 1em;
-}
-.input label {
-    display: block;
-    font-size: 50%;
-    font-weight: bold;
-    position: absolute;
-    text-align: center;
-    width: 100%;
-}
-input {
-	border: none;
-	border-bottom: 1px solid black;
-	font-size: 100%;
-}
-
-input[type=submit] {
-	border: 1px solid black;
-	font-size: 100%;
-}
-
-textarea {
-	border: none;
-	font-size: 100%;
-}
-
-textarea:focus {
-	outline: 0 none;
-}
-
-/*
-#basics { border-left: 3px solid blue; }
-*/
-</style>
-<form name="someform" method="post" action="/">
-    <div class="wrapper">
-    What did you do?
-    <textarea name="message" cols="30" rows="3"></textarea>
-    </div>
-    <div class="input">
-        <input type="text" name="extra" style="width: 500px;" />
-        <label for="extra">(@people "@other people" #things "!Yesterday at 1:30pm")</label>
-    </div>
-    <div>
-    <input type="submit" value="Update" />
-    </div>
-</form>
-<p><a href="archive">Archive</a></p>
-        </div>
-    </body>
-</html> 
+{{>header.mustache}}
+<div class="content">
+	<div class="page-header">
+		<h1>What did you do?</h1>
+	</div>
+	<div class="row">
+		<div class="span10">
+			<form class="form-stacked" method="POST" action="/">
+				<div class="clearfix">
+					<div class="input">
+						<textarea class="xxlarge" id="messageField" name="message" rows="5"></textarea>
+					</div>
+				</div>
+				<div class="clearfix">
+					<div class="input">
+						<input class="xxlarge" id="tagsField" name="extra" size="30" type="text" />
+					</div>
+				</div>
+				<div>
+					<input type="submit" class="btn primary" value="Save" />
+				</div>
+			</form>
+		</div>
+<!--
+		<div class="span4">
+			<h3>Recent Tags and People</h3>
+			<ul>
+				<li>@Carolyn Gerakines</li>
+				<li>@Steve McGarrity</li>
+				<li>@Cord Bartlett</li>
+				<li>#meeting</li>
+				<li>#maven</li>
+				<li>#git</li>
+			</ul>
+		</div>
+-->
+	</div>
+</div>
+{{>footer.mustache}}

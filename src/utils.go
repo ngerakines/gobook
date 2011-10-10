@@ -60,3 +60,13 @@ func splitTags(value string) []string {
 	}
 	return trimTagList(tags, tag_count)
 }
+
+func clampRange(size, min, max int) int {
+	if size < min {
+		return size
+	}
+	if size > max {
+		return max
+	}
+	return size
+}

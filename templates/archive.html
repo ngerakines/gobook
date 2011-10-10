@@ -1,15 +1,35 @@
-<html>
-<head>
-</head>
-<body>
-{{#grouped_entries}}
-<h1>{{ Key }}</h1>
-{{#Entries}}
-<div id="entry_{{ id }}">
-<h2>{{ PrettyDate }}</h2>
-<p>{{ Message }}</p>
+{{>header.mustache}}
+<div class="content">
+	<div class="page-header">
+		<h1>What did you do?</h1>
+	</div>
+	<div class="row">
+		<div class="span10">
+			{{#grouped_entries}}
+			<h1>{{ PrettyDate }} {{ PrettyTimeOfDay }}</h1>
+			{{#Entries}}
+			<div id="entry_{{ Id }}">
+			<blockquote>{{ Message }}</blockquote>
+			</div>
+<script language="JavaScript" type="text/javascript">
+$(function() {
+	renderTags("entry_{{ Id }}", {{#Tags}}"{{Value}}", {{/Tags}} "On {{ PrettyDate}}");
+});
+</script>
+			{{/Entries}}
+			{{/grouped_entries}}
+		</div>
+		<div class="span4">
+			<h3>Tags and People</h3>
+			<ul id="tagList">
+				<li>@Carolyn Gerakines</li>
+				<li>@Steve McGarrity</li>
+				<li>@Cord Bartlett</li>
+				<li>#meeting</li>
+				<li>#maven</li>
+				<li>#git</li>
+			</ul>
+		</div>
+	</div>
 </div>
-{{/Entries}}
-{{/grouped_entries}}
-</body>
-</html>
+{{>footer.mustache}}
