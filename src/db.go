@@ -4,18 +4,17 @@ import (
 	"fmt"
 	"time"
 	"log"
+	"sort"
 )
 
 func getTags(id string) []string {
 	// NKG: Convert to prepared statement.
 	err := db.Query("select tag from tags where id = \"" + id + "\"")
 	if err != nil {
-		log.Println(err)
 	    return []string{}
 	}
 	result, err := db.UseResult()
 	if err != nil {
-		log.Println(err)
 	    return []string{}
 	}
 	tags := make([]string, 100)
@@ -38,15 +37,12 @@ func getTags(id string) []string {
 func storeEntry(id UUID, message string, tags []string) {
 	stmt, err := db.Prepare("insert into entries values (?, ?, ?, ?)")
 	if err != nil {
-		log.Println(err)
 		return
 	}
 	if error := stmt.BindParams(id.String(), time.Seconds(), message, 0); error != nil {
-		log.Println(error)
 		return
 	}
 	if error := stmt.Execute(); error != nil {
-		log.Println(error)
 		return
 	}
 	for _, tag := range tags {
@@ -58,15 +54,12 @@ func storeEntry(id UUID, message string, tags []string) {
 func storeTag(entryId UUID, tag string) {
 	stmt, err := db.Prepare("insert into tags values (?, ?)")
 	if err != nil {
-		log.Println(err)
 		return
 	}
 	if error := stmt.BindParams(entryId.String(), tag); error != nil {
-		log.Println(error)
 		return
 	}
 	if error := stmt.Execute(); error != nil {
-		log.Println(error)
 		return
 	}
 }
@@ -74,15 +67,12 @@ func storeTag(entryId UUID, tag string) {
 func storeReverseTag(entryId UUID, tag string) {
 	stmt, err := db.Prepare("insert into tags_reverse values (?, ?)")
 	if err != nil {
-		log.Println(err)
 		return
 	}
 	if error := stmt.BindParams(tag, entryId.String()); error != nil {
-		log.Println(error)
 		return
 	}
 	if error := stmt.Execute(); error != nil {
-		log.Println(error)
 		return
 	}
 }
@@ -90,12 +80,10 @@ func storeReverseTag(entryId UUID, tag string) {
 func getEntries() []Entry {
 	err := db.Query("select * from entries limit 100")
 	if err != nil {
-		log.Println(err)
 	    return []Entry{}
 	}
 	result, err := db.UseResult()
 	if err != nil {
-		log.Println(err)
 	    return []Entry{}
 	}
 	entries := make([]Entry, 100)
@@ -137,7 +125,6 @@ func groupEntries(entries []Entry) map[string][]Entry {
 	for _, entry := range entries {
 		tod, utc_time := getTimeOfDay(entry.When)
 		key := fmt.Sprintf("%d-%d-%d-%d", utc_time.Year, utc_time.Month, utc_time.Day, tod)
-		fmt.Println(key)
 		if group_entry, ok := groups[key]; ok {
 			index := meta_group_entries[key]
 			group_entry[index] = entry
@@ -157,14 +144,13 @@ func groupEntries(entries []Entry) map[string][]Entry {
 
 func getTimeOfDay(when int64) (tod int, utc_time *time.Time) {
 	utc_time = time.SecondsToLocalTime(when)
-	fmt.Println(utc_time)
 	tod = 0 // default to morning (midnight to noon)
 	switch {
 		case utc_time.Hour < 4:
 			tod = 3 // night, shift day back 1
 		case utc_time.Hour < 12:
 			tod = 0 // morning
-		case utc_time.Hour < 5:
+		case utc_time.Hour < 17:
 			tod = 1 // afternoon
 		default:
 			tod = 2 // evening
@@ -198,12 +184,19 @@ func reverseEntries(old_entries []Entry) []Entry {
 }
 
 func groupedEntriesToEntryGroups(entries map[string][]Entry) []EntryGroup {
+	keys := make([]string, len(entries))
+	keyIndex := 0
+	for key := range entries {
+		keys[keyIndex] = key
+		keyIndex++
+	}
+	sort.Strings(keys)
+
 	entryGroupList := make([]EntryGroup, len(entries))
-	index := 0
-	for key, group_entries := range entries {
+	for index, key := range keys {
 		var entryGroup EntryGroup
 		entryGroup.Key = key
-		entryGroup.Entries = group_entries
+		entryGroup.Entries = entries[key]
 		entryGroupList[index] = entryGroup
 		index++
 	}
@@ -211,6 +204,7 @@ func groupedEntriesToEntryGroups(entries map[string][]Entry) []EntryGroup {
 }
 
 func reverseEntryGroups(old_groups []EntryGroup) []EntryGroup {
+
 	groups := make([]EntryGroup, len(old_groups))
 	i := 0
 	j := len(old_groups) - 1;
@@ -224,9 +218,9 @@ func reverseEntryGroups(old_groups []EntryGroup) []EntryGroup {
 
 func dumpGroupedEntries(grouped_entries map[string][]Entry) {
 	for key, group_entries := range grouped_entries {
-		fmt.Println(key)
+		log.Println(key)
 		for index, entry := range group_entries {
-			fmt.Printf("#%d %s\n", index, entry.Id)
+			log.Printf("#%d %s\n", index, entry.Id)
 		}
 	}
 }
