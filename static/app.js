@@ -36,7 +36,7 @@ function renderTags(entry_div) {
 	people.sort();
 	var out = "";
 	for (i = 0; i < tags.length; i++ ) {
-		out += " <a href=\"#\">" + tags[i] + "</a>";
+		out += " <a class=\"tag\" href=\"#\">" + tags[i] + "</a>";
 	}
 	if (people.length > 0) {
 		word = "with"
@@ -45,7 +45,7 @@ function renderTags(entry_div) {
 		}
 		out += " " + word + " ";
 		for (i = 0; i < people.length; i++ ) {
-			out += " <a href=\"#\">" + people[i] + "</a>";
+			out += " <a class=\"person\" href=\"#\">" + people[i] + "</a>";
 		}
 	}
 	/* if (other.length == 1) {
