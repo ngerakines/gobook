@@ -33,7 +33,7 @@ func createEntry(req *web.Request) {
 
 func displayArchive(req *web.Request) {
 	entries := getEntries()
-	grouped_entries := groupedEntriesToEntryGroups(groupEntries(entries))
+	grouped_entries := reverseEntryGroups(groupedEntriesToEntryGroups(groupEntries(entries)))
 	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
 	params := make(map[string]interface{})
 	// params["entries"] = entries

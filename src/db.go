@@ -210,6 +210,18 @@ func groupedEntriesToEntryGroups(entries map[string][]Entry) []EntryGroup {
 	return entryGroupList
 }
 
+func reverseEntryGroups(old_groups []EntryGroup) []EntryGroup {
+	groups := make([]EntryGroup, len(old_groups))
+	i := 0
+	j := len(old_groups) - 1;
+	for i < len(old_groups) {
+		groups[j] = old_groups[i]
+		i++
+		j--
+	}
+	return groups
+}
+
 func dumpGroupedEntries(grouped_entries map[string][]Entry) {
 	for key, group_entries := range grouped_entries {
 		fmt.Println(key)
