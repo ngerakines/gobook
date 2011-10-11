@@ -51,11 +51,16 @@ func main() {
 	    os.Exit(1)
 	}
 
+	port := ":8080"
+	if envPort := os.Getenv("GOBOOK_PORT"); envPort != "" {
+		port = ":" + envPort
+	}
+
 	h := web.FormHandler(10000, false,
 		web.NewRouter().
 			Register("/", "GET", displayIndex, "POST", createEntry).
 			Register("/archive", "GET", displayArchive).
 			Register("/static/<path:.*>", "GET", web.DirectoryHandler("./static/", new(web.ServeFileOptions))))
-	server.Run(":8080", h)
+	server.Run(port, h)
 }
 
