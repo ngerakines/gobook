@@ -53,7 +53,7 @@ func main() {
 
 	port := ":8080"
 	if envPort := os.Getenv("GOBOOK_PORT"); envPort != "" {
-		port = ":" + envPort
+		port = envPort
 	}
 
 	h := web.FormHandler(10000, false,
