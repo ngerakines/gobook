@@ -5,6 +5,7 @@ import (
 	"time"
 	"log"
 	"sort"
+	"strings"
 )
 
 func getTags(id string) []string {
@@ -35,11 +36,12 @@ func getTags(id string) []string {
 }
 
 func storeEntry(id UUID, message string, tags []string) {
+	when := getTime(tags)
 	stmt, err := db.Prepare("insert into entries values (?, ?, ?, ?)")
 	if err != nil {
 		return
 	}
-	if error := stmt.BindParams(id.String(), time.Seconds(), message, 0); error != nil {
+	if error := stmt.BindParams(id.String(), when, message, 0); error != nil {
 		return
 	}
 	if error := stmt.Execute(); error != nil {
@@ -49,6 +51,16 @@ func storeEntry(id UUID, message string, tags []string) {
 		storeTag(id, tag)
 		storeReverseTag(id, tag)
 	}
+}
+
+func getTime(tags []string) int64 {
+	for _, tag := range tags {
+		if strings.Index(tag, "!") == 0 {
+			when := parseTime(tag)
+			return when.Seconds()
+		}
+	}
+	return time.Seconds()
 }
 
 func storeTag(entryId UUID, tag string) {
