@@ -36,11 +36,7 @@ func displayArchive(req *web.Request) {
 	grouped_entries := reverseEntryGroups(groupedEntriesToEntryGroups(groupEntries(entries)))
 	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
 	params := make(map[string]interface{})
-	// params["entries"] = entries
 	params["grouped_entries"] = grouped_entries
-	for _, value := range entries {
-		log.Println(value.Id)
-	}
 	io.WriteString(w, RenderFile("templates/archive.html", params))
 }
 
