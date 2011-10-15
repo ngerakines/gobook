@@ -14,7 +14,7 @@
 			</div>
 <script language="JavaScript" type="text/javascript">
 $(function() {
-	renderTags("entry_{{ Id }}", {{#Tags}}"{{Value}}", {{/Tags}} "On {{ PrettyDate}}");
+	renderTags("{{ Id }}", {{#Tags}}"{{Value}}", {{/Tags}} "On {{ PrettyDate}}");
 });
 </script>
 			{{/Entries}}
@@ -33,25 +33,39 @@ $(document).ready(function(){
 	renderTagsList();
 
 	$(".person").click(function () {
-		var $tag = $(this).text()
+		var tag = $(this).text()
 		$(this).effect("highlight", {}, 3000);
-		$.map(groups, function(value, key) {
-			if (value['people'].indexOf($tag) != -1) {
-				$("#" + key).show();
+		$.map(groups, function(value, group_id) {
+			if (value['people'].indexOf(tag) != -1) {
+				$("#" + group_id).show();
+				$.each(value['entries'], function(index, entry_id) { 
+					if (entries[entry_id]['people'].indexOf(tag) != -1) {
+						$("#entry_" + entry_id).show();
+					} else {
+						$("#entry_" + entry_id).fadeOut("slow");
+					}
+				});
 			} else {
-				$("#" + key).fadeOut("slow");
+				$("#" + group_id).fadeOut("slow");
 			}
 		});
 	});
 
 	$(".tag").click(function () {
-		var $tag = $(this).text()
+		var tag = $(this).text()
 		$(this).effect("highlight", {}, 3000);
-		$.map(groups, function(value, key) {
-			if (value['tags'].indexOf($tag) != -1) {
-				$("#" + key).show();
+		$.map(groups, function(value, group_id) {
+			if (value['tags'].indexOf(tag) != -1) {
+				$("#" + group_id).show();
+				$.each(value['entries'], function(index, entry_id) { 
+					if (entries[entry_id]['tags'].indexOf(tag) != -1) {
+						$("#entry_" + entry_id).show();
+					} else {
+						$("#entry_" + entry_id).fadeOut("slow");
+					}
+				});
 			} else {
-				$("#" + key).fadeOut("slow");
+				$("#" + group_id).fadeOut("slow");
 			}
 		});
 	});
@@ -59,6 +73,9 @@ $(document).ready(function(){
 	$('#reset').click(function() {
 		$.map(groups, function(value, key) {
 			$("#" + key).show();
+			$.each(value['entries'], function(index, entry_id) {
+				$("#entry_" + entry_id).show();
+			});
 		});
 	});
 });
