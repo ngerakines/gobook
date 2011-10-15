@@ -16,16 +16,26 @@ Array.prototype.unique =
 
 var allTags = Array();
 var allPeople = Array();
+var groups = { };
 
 function renderTags(entry_div) {
 	tags = Array()
 	people = Array()
 	other = Array()
+
+	var $parent = $("#" + entry_div).parent()
+	var $group_id = $parent.attr("id");
+	if (!($group_id in groups)) {
+		groups[$group_id] = { 'tags': [], 'people': [] };
+	}
+
 	for (i = 1; i < arguments.length; i++) {
 		if (arguments[i].substring(0, 1) == "#") {
+			groups[$group_id]['tags'].push(arguments[i])
 			tags.push(arguments[i])
 			allTags.push(arguments[i])
 		} else if (arguments[i].substring(0, 1) == "@") {
+			groups[$group_id]['people'].push(arguments[i])
 			people.push(arguments[i])
 			allPeople.push(arguments[i])
 		} else {
@@ -52,7 +62,6 @@ function renderTags(entry_div) {
 		out += other[0]
 	} */
 	$("#" + entry_div).append("<p>" + out + "</p>");
-	renderTagsList()
 }
 
 function renderTagsList() {
@@ -62,9 +71,11 @@ function renderTagsList() {
 	allPeople.sort();
 	allPeople = allPeople.unique();
 	for (i = 0; i < allPeople.length; i++) {
-		$("#tagList").append("<li>" + allPeople[i] + "</li>");
+		var $new_person = $('<li class="person">' + allPeople[i] + '</li>');
+		$('#tagList').append($new_person)
 	}
 	for (i = 0; i < allTags.length; i++) {
-		$("#tagList").append("<li>" + allTags[i] + "</li>");
+		var $new_tag = $('<li class="tag">' + allTags[i] + '</li>');
+		$('#tagList').append($new_tag)
 	}
 }
