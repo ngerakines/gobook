@@ -14,25 +14,17 @@ func getTags(id string) []string {
 	if err != nil {
 	    return []string{}
 	}
-	result, err := db.UseResult()
+	result, err := db.StoreResult()
 	if err != nil {
 	    return []string{}
 	}
-	tags := make([]string, 100)
-	tag_count := 0
-	for {
-	    row := result.FetchMap()
-	    if row == nil {
-	        break
-	    }
-		tag := string([]uint8( row["tag"].([]uint8)  ))
-		tags[tag_count] = tag
-		tag_count++
+	tags := make([]string, result.RowCount())
+	for index, row := range result.FetchRows() {
+		tag := string([]uint8( row[0].([]uint8)  ))
+		tags[index] = tag
 	}
-	// NKG: Do I really have to fucking call this after every query?!
 	db.FreeResult()
-
-	return trimTagList(tags, tag_count)
+	return tags
 }
 
 func storeEntry(id UUID, message string, tags []string) {
@@ -89,69 +81,62 @@ func storeReverseTag(entryId UUID, tag string) {
 	}
 }
 
-func getEntries() []Entry {
-	err := db.Query("select * from entries order by date DESC limit 250")
+func getEntries() []*Entry {
+	err := db.Query("select id, message, date from entries order by date DESC limit 250")
 	if err != nil {
-	    return []Entry{}
+	    return []*Entry{}
 	}
-	result, err := db.UseResult()
+	result, err := db.StoreResult()
 	if err != nil {
-	    return []Entry{}
+	    return []*Entry{}
 	}
-	entries := make([]Entry, 100)
-	current := 0
-	for {
-	    row := result.FetchMap()
-	    if row == nil {
-	        break
-	    }
-		var entry Entry
-		entry.Id = string([]uint8( row["id"].([]uint8)  ))
-		entry.Message = string([]uint8( row["message"].([]uint8)  ))
-		entry.When = row["date"].(int64)
-		entries[current] = entry
-		current++
+	entries := make([]*Entry, result.RowCount())
+	for index, row :=  range result.FetchRows() {
+		entry := new(Entry)
+		entry.Id = string([]uint8( row[0].([]uint8)  ))
+		entry.Message = string([]uint8( row[1].([]uint8)  ))
+		entry.When = row[2].(int64)
+		entries[index] = entry
 	}
 	// NKG: Do I really have to fucking call this after every query?!
 	db.FreeResult()
 
-	return trimEntryList(entries, current)
-}
-
-func trimEntryList(old_entries []Entry, size int) []Entry {
-	entries := make([]Entry, size)
-	for i := 0; i < size; i++ {
-	        entries[i] = old_entries[i]
-	}
 	return entries
 }
 
-func groupEntries(entries []Entry) map[string][]Entry {
-	groups := make(map[string][]Entry)
+func groupEntries(entries []*Entry) map[string]*EntryGroup {
+	groups := make(map[string]*EntryGroup)
 	// NKG: May seem strange, but I'm using another map to track the size
 	// of the individual groups within the groups map. Will find a better way
 	// to do this ...
-	meta_group_entries := make(map[string]int)
+	// meta_group_entries := make(map[string]int)
 	// NKG: Every time we place an entry the default group list size shrinks.
-	count_down := len(entries)
+	// count_down := len(entries)
 	for _, entry := range entries {
 		tod, utc_time := getTimeOfDay(entry.When)
 		key := fmt.Sprintf("%d-%d-%d-%d", utc_time.Year, utc_time.Month, utc_time.Day, tod)
-		if group_entry, ok := groups[key]; ok {
+		entryGroup, ok := groups[key]
+		if ok == false {
+			entryGroup = new(EntryGroup)
+			entryGroup.Key = key
+			groups[key] = entryGroup
+		}
+		entryGroup.AddEntry(entry)
+		/* if group_entry, ok := groups[key]; ok {
 			index := meta_group_entries[key]
 			group_entry[index] = entry
 			index++
 			meta_group_entries[key] = index
 			groups[key] = group_entry
 		} else {
-			group_entry := make([]Entry, count_down)
+			group_entry := make([]Entry, 1, count_down)
 			group_entry[0] = entry
 			groups[key] = group_entry
 			meta_group_entries[key] = 1
 			count_down--
-		}
+		} */
 	}
-	return trimGroupedEntries(groups, meta_group_entries)
+	return groups
 }
 
 func getTimeOfDay(when int64) (tod int, utc_time *time.Time) {
@@ -174,15 +159,6 @@ func getTimeOfDay(when int64) (tod int, utc_time *time.Time) {
 	return
 }
 
-func trimGroupedEntries(old_grouped_entries map[string][]Entry, meta_group_entries map[string]int) map[string][]Entry {
-	grouped_entries := make(map[string][]Entry)
-	for key, group_entries := range old_grouped_entries {
-		size := meta_group_entries[key]
-		grouped_entries[key] = reverseEntries(trimEntryList(group_entries, size))
-	}
-	return grouped_entries
-}
-
 func reverseEntries(old_entries []Entry) []Entry {
 	entries := make([]Entry, len(old_entries))
 	i := 0
@@ -195,7 +171,7 @@ func reverseEntries(old_entries []Entry) []Entry {
 	return entries
 }
 
-func groupedEntriesToEntryGroups(entries map[string][]Entry) []EntryGroup {
+func groupedEntriesToEntryGroups(entries map[string][]*Entry) []EntryGroup {
 	keys := make([]string, len(entries))
 	keyIndex := 0
 	for key := range entries {
@@ -215,14 +191,19 @@ func groupedEntriesToEntryGroups(entries map[string][]Entry) []EntryGroup {
 	return entryGroupList
 }
 
-func reverseEntryGroups(old_groups []EntryGroup) []EntryGroup {
+func flattenEntryGroups(entryGroups map[string]*EntryGroup) []*EntryGroup {
+	keys := make([]string, len(entryGroups))
+	keyIndex := 0
+	for key, _ := range entryGroups {
+		keys[keyIndex] = key
+		keyIndex++
+	}
+	sort.Strings(keys)
 
-	groups := make([]EntryGroup, len(old_groups))
-	i := 0
-	j := len(old_groups) - 1;
-	for i < len(old_groups) {
-		groups[j] = old_groups[i]
-		i++
+	groups := make([]*EntryGroup, len(keys))
+	j := len(keys) - 1
+	for _, key := range keys {
+		groups[j] = entryGroups[key]
 		j--
 	}
 	return groups
@@ -237,10 +218,3 @@ func dumpGroupedEntries(grouped_entries map[string][]Entry) {
 	}
 }
 
-func trimTagList(old_tags []string, size int) []string {
-	entries := make([]string, size)
-	for i := 0; i < size; i++ {
-	        entries[i] = old_tags[i]
-	}
-	return entries
-}

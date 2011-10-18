@@ -17,7 +17,7 @@ splitTags("#meeting \"@Steve McGarrity\" #port #battle.net    \"\"")
 func splitTags(value string) []string {
 	reader := strings.NewReader(value)
 	// being greedy with allocating tags array size
-	tags := make([]string, len(value))
+	tags := make([]string, 0, len(value))
 	tag_count := 0
 	buffer := ""
 	isInQuote := false
@@ -28,6 +28,7 @@ func splitTags(value string) []string {
 		rune, _, err := reader.ReadRune()
 		if err != nil {
 			if len(buffer) > 0 {
+				tags = tags[0:len(tags) + 1]
 				tags[tag_count] = buffer
 				tag_count++
 				buffer = ""
@@ -38,6 +39,7 @@ func splitTags(value string) []string {
 			if isInQuote == false {
 				appendBuffer = false
 				if len(buffer) > 0 {
+					tags = tags[0:len(tags) + 1]
 					tags[tag_count] = buffer
 					tag_count++
 					buffer = ""
@@ -52,6 +54,7 @@ func splitTags(value string) []string {
 			if len(buffer) > 0 {
 				isInQuote = false
 				appendBuffer = false
+				tags = tags[0:len(tags) + 1]
 				tags[tag_count] = buffer
 				tag_count++
 				buffer = ""
@@ -62,7 +65,7 @@ func splitTags(value string) []string {
 		}
 		lastRune = rune
 	}
-	return trimTagList(tags, tag_count)
+	return tags
 }
 
 func clampRange(size, min, max int) int {

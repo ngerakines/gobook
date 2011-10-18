@@ -33,14 +33,18 @@ func createEntry(req *web.Request) {
 
 func displayArchive(req *web.Request) {
 	entries := getEntries()
-	grouped_entries := reverseEntryGroups(groupedEntriesToEntryGroups(groupEntries(entries)))
+	entryGroups := flattenEntryGroups(groupEntries(entries))
 	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
 	params := make(map[string]interface{})
-	params["grouped_entries"] = grouped_entries
+	params["entry_groups"] = entryGroups
 	io.WriteString(w, RenderFile("templates/archive.html", params))
 }
 
 func main() {
+	/* log.Println(splitTags("Nick Carolyn Vanessa Hannah"))
+	log.Println(splitTags("\"Hello World\""))
+	log.Println(splitTags("\"@Carolyn Gerakines\" #dinner #date"))
+	log.Println(splitTags("#meeting \"@Steve McGarrity\" #port #battle.net    \"\"")) */
 	db, db_err = mysql.DialTCP("localhost", "root", "asd123", "gobook")
 	if db_err != nil {
 		log.Println(db_err)

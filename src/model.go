@@ -14,12 +14,26 @@ type Entry struct {
 
 type EntryGroup struct {
 	Key string
-	Entries []Entry
+	Entries []*Entry
 }
 
 type EntryTag struct {
 	Value string
 	count int
+}
+
+func (entryGroup *EntryGroup) AddEntry(entry *Entry) {
+	if entryGroup.Entries == nil {
+		entryGroup.Entries = make([]*Entry, 0, 100)
+	}
+	n := len(entryGroup.Entries)
+	if n + 1 > cap(entryGroup.Entries) {
+		s := make([]*Entry, n, 2 * n + 1)
+		copy(s, entryGroup.Entries)
+		entryGroup.Entries = s
+	}
+	entryGroup.Entries = entryGroup.Entries[0 : n + 1]
+	entryGroup.Entries[n] = entry
 }
 
 func (entry Entry) PrettyDate() string {
