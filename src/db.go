@@ -90,7 +90,7 @@ func storeReverseTag(entryId UUID, tag string) {
 }
 
 func getEntries() []Entry {
-	err := db.Query("select * from entries limit 100")
+	err := db.Query("select * from entries order by date DESC limit 250")
 	if err != nil {
 	    return []Entry{}
 	}
