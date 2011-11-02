@@ -10,7 +10,9 @@
 			<h1>{{ PrettyDate }} {{ PrettyTimeOfDay }}</h1>
 			{{#Entries}}
 			<div id="entry_{{ Id }}" class="entry">
-			<blockquote>{{ Message }}</blockquote>
+				<div class="entryText">
+{{{PrettyMessage}}}
+				</div>
 			</div>
 <script language="JavaScript" type="text/javascript">
 $(function() {

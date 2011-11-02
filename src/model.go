@@ -3,8 +3,10 @@ package main
 
 import (
 	"time"
+	"bytes"
 	"strings"
 	"strconv"
+	"github.com/russross/blackfriday"
 )
 
 type Entry struct {
@@ -40,6 +42,12 @@ func (entry Entry) PrettyDate() string {
 	utc_time := time.SecondsToLocalTime(entry.When)
 	value := utc_time.Format(time.RFC822)
 	return value
+}
+
+func (entry Entry) PrettyMessage() string {
+	buffer := bytes.NewBufferString(entry.Message)
+	output := blackfriday.MarkdownCommon(buffer.Bytes())
+	return string(output)
 }
 
 func (entryGroup EntryGroup) PrettyDate() string {
