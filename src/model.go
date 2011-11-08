@@ -7,6 +7,7 @@ import (
 	"strings"
 	"strconv"
 	"github.com/russross/blackfriday"
+	"log"
 )
 
 type Entry struct {
@@ -50,7 +51,7 @@ func (entry Entry) PrettyMessage() string {
 	return string(output)
 }
 
-func (entryGroup EntryGroup) PrettyDate() string {
+func (entryGroup EntryGroup) PrettyGroupDate() string {
 	parts := strings.Split(entryGroup.Key, "-")
 	when := time.LocalTime()
 	if value, err := strconv.Atoi64(parts[0]); err == nil {
@@ -62,8 +63,8 @@ func (entryGroup EntryGroup) PrettyDate() string {
 	if value, err := strconv.Atoi(parts[2]); err == nil {
 		when.Day = value
 	}
-	value := when.Format("Mon, 02 Jan 2006")
-	return value
+	retval := when.Format("_2 Jan 2006")
+	return retval
 }
 
 func (entryGroup EntryGroup) PrettyTimeOfDay() string {
