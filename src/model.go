@@ -7,7 +7,6 @@ import (
 	"strings"
 	"strconv"
 	"github.com/russross/blackfriday"
-	"log"
 )
 
 type Entry struct {
