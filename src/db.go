@@ -114,7 +114,12 @@ func groupEntries(entries []*Entry) map[string]*EntryGroup {
 	// count_down := len(entries)
 	for _, entry := range entries {
 		tod, utc_time := getTimeOfDay(entry.When)
-		key := fmt.Sprintf("%d-%d-%d-%d", utc_time.Year, utc_time.Month, utc_time.Day, tod)
+		key := fmt.Sprintf("")                  
+                if(utc_time.Day < 10){
+			key = fmt.Sprintf("%d-%d-0%d-%d", utc_time.Year, utc_time.Month, utc_time.Day, tod)
+		}else {
+			key = fmt.Sprintf("%d-%d-%d-%d", utc_time.Year, utc_time.Month, utc_time.Day, tod)
+		}
 		entryGroup, ok := groups[key]
 		if ok == false {
 			entryGroup = new(EntryGroup)
