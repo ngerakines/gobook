@@ -11,6 +11,7 @@
 			{{#Entries}}
 			<div id="entry_{{ Id }}" class="entry">
 				<div class="entryText">
+<span style="position: relative; top:0; right:0; float: right;" class="entryText-menu twipsy" title="{{PrettyDate}}">More</span>
 {{{PrettyMessage}}}
 				</div>
 			</div>
@@ -79,6 +80,10 @@ $(document).ready(function(){
 				$("#entry_" + entry_id).show();
 			});
 		});
+	});
+
+	$(".twipsy").twipsy({
+		live: true
 	});
 });
 </script>
