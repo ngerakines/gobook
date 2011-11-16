@@ -54,7 +54,7 @@ function renderTags(entry_id) {
 	people.sort();
 	var out = "";
 	for (i = 0; i < tags.length; i++ ) {
-		out += " <a class=\"tag\" href=\"#\">" + tags[i] + "</a>";
+		out += " <a class=\"tag\" href=\"/tag/" + encodeURIComponent(tags[i]) + "\">" + tags[i] + "</a>";
 	}
 	if (people.length > 0) {
 		word = "with"
@@ -63,7 +63,7 @@ function renderTags(entry_id) {
 		}
 		out += " " + word + " ";
 		for (i = 0; i < people.length; i++ ) {
-			out += " <a class=\"person\" href=\"#\">" + people[i] + "</a>";
+			out += " <a class=\"person\" href=\"/tag/" + encodeURIComponent(people[i]) + "\">" + people[i] + "</a>";
 		}
 	}
 	/* if (other.length == 1) {
@@ -79,11 +79,12 @@ function renderTagsList() {
 	allPeople.sort();
 	allPeople = allPeople.unique();
 	for (i = 0; i < allPeople.length; i++) {
-		var $new_person = $('<li class="person">' + allPeople[i] + '</li>');
+		var $new_person = $('<li class="person"><a href="/tag/' + encodeURIComponent(allPeople[i]) + '">' + allPeople[i] + '</a></li>');
 		$('#tagList').append($new_person)
 	}
 	for (i = 0; i < allTags.length; i++) {
-		var $new_tag = $('<li class="tag">' + allTags[i] + '</li>');
+		var $new_tag = $('<li class="tag"><a href="/tag/' + encodeURIComponent(allTags[i]) + '">' + allTags[i] + '</a></li>');
 		$('#tagList').append($new_tag)
 	}
 }
+

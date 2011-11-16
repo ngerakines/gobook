@@ -27,7 +27,6 @@ $(function() {
 		<div class="span4">
 			<h3>Tags and People</h3>
 			<ul id="tagList"></ul>
-			<p><a id="reset" href="#">Reset</a></p>
 		</div>
 	</div>
 </div>
@@ -35,7 +34,7 @@ $(function() {
 $(document).ready(function(){
 	renderTagsList();
 
-	$(".person").click(function () {
+	/* $(".person").click(function () {
 		var tag = $(this).text()
 		$(this).effect("highlight", {}, 3000);
 		$.map(groups, function(value, group_id) {
@@ -71,7 +70,7 @@ $(document).ready(function(){
 				$("#" + group_id).fadeOut("slow");
 			}
 		});
-	});
+	}); */
 
 	$('#reset').click(function() {
 		$.map(groups, function(value, key) {

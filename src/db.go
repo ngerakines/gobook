@@ -81,6 +81,30 @@ func storeReverseTag(entryId UUID, tag string) {
 	}
 }
 
+func getEntriesFromTag(tag string) []*Entry {
+	query := fmt.Sprintf("select id, message, date from entries where id in (select id from tags where tag = \"%s\") order by date DESC", db.Escape(tag) )
+	err := db.Query(query)
+	if err != nil {
+	    return []*Entry{}
+	}
+	result, err := db.StoreResult()
+	if err != nil {
+	    return []*Entry{}
+	}
+	entries := make([]*Entry, result.RowCount())
+	for index, row :=  range result.FetchRows() {
+		entry := new(Entry)
+		entry.Id = string([]uint8( row[0].([]uint8)  ))
+		entry.Message = string([]uint8( row[1].([]uint8)  ))
+		entry.When = row[2].(int64)
+		entries[index] = entry
+	}
+	// NKG: Do I really have to fucking call this after every query?!
+	db.FreeResult()
+
+	return entries
+}
+
 func getEntries() []*Entry {
 	err := db.Query("select id, message, date from entries order by date DESC limit 250")
 	if err != nil {
