@@ -41,7 +41,6 @@ func storeEntry(id UUID, message string, tags []string) {
 	}
 	for _, tag := range tags {
 		storeTag(id, tag)
-		storeReverseTag(id, tag)
 	}
 }
 
@@ -68,12 +67,12 @@ func storeTag(entryId UUID, tag string) {
 	}
 }
 
-func storeReverseTag(entryId UUID, tag string) {
-	stmt, err := db.Prepare("insert into tags_reverse values (?, ?)")
+func updateTag(oldName, newName string) {
+	stmt, err := db.Prepare("update tags set tag = ? where tag = ?")
 	if err != nil {
 		return
 	}
-	if error := stmt.BindParams(tag, entryId.String()); error != nil {
+	if error := stmt.BindParams(newName, oldName); error != nil {
 		return
 	}
 	if error := stmt.Execute(); error != nil {
@@ -103,6 +102,31 @@ func getEntriesFromTag(tag string) []*Entry {
 	db.FreeResult()
 
 	return entries
+}
+
+func getEntry(id string) *Entry {
+	query := fmt.Sprintf("select id, message, date from entries where id = \"%s\"", db.Escape(id))
+	err := db.Query(query)
+	if err != nil {
+	    return nil
+	}
+	result, err := db.StoreResult()
+	if err != nil {
+	    return nil
+	}
+	if result.RowCount() != 1 {
+		return nil
+	}
+	entry := new(Entry)
+	for _, row :=  range result.FetchRows() {
+		entry.Id = string([]uint8( row[0].([]uint8)  ))
+		entry.Message = string([]uint8( row[1].([]uint8)  ))
+		entry.When = row[2].(int64)
+	}
+	// NKG: Do I really have to fucking call this after every query?!
+	db.FreeResult()
+
+	return entry
 }
 
 func getEntries() []*Entry {

@@ -3,12 +3,14 @@ package main
 import (
 	"os"
 	"io"
+	"fmt"
 	"github.com/Philio/GoMySQL"
 	"github.com/garyburd/twister/server"
 	"github.com/garyburd/twister/web"
 	// "strings"
 	"log"
 	// "time"
+	"url"
 )
 
 var (
@@ -40,10 +42,12 @@ func displayArchive(req *web.Request) {
 	io.WriteString(w, RenderFile("templates/archive.html", params))
 }
 
-func editTag(req *web.Request) {
-	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
-	log.Println(req.URLParam)
-	io.WriteString(w, "displayTag")
+func renameTag(req *web.Request) {
+	oldTag := req.Param.Get("oldTag")
+	newTag := req.Param.Get("newTag")
+	updateTag(oldTag, newTag)
+	url := fmt.Sprintf("/tag/%s", url.QueryEscape(newTag))
+	req.Redirect(url, false)
 }
 
 func displayTag(req *web.Request) {
@@ -52,9 +56,20 @@ func displayTag(req *web.Request) {
 	if tag, ok := req.URLParam["tag"]; ok {
 		entries := getEntriesFromTag(tag)
 		entryGroups := flattenEntryGroups(groupEntries(entries))
+		params["tag"] = tag
 		params["entry_groups"] = entryGroups
 	}
 	io.WriteString(w, RenderFile("templates/tag.html", params))
+}
+
+func displayEntry(req *web.Request) {
+	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
+        params := make(map[string]interface{})
+        if id, ok := req.URLParam["id"]; ok {
+                entry := getEntry(id)
+                params["entry"] = entry
+        }
+        io.WriteString(w, RenderFile("templates/entry.html", params))
 }
 
 func main() {
@@ -77,8 +92,9 @@ func main() {
 		web.NewRouter().
 			Register("/", "GET", displayIndex, "POST", createEntry).
 			Register("/archive", "GET", displayArchive).
-			// Register("/edit-tag/<tag:.*>", "GET", editTag).
 			Register("/tag/<tag:.*>", "GET", displayTag).
+			// Register("/entry/<id:.*>", "GET", displayEntry).
+			Register("/api/tag/rename/", "POST", renameTag).
 			Register("/static/<path:.*>", "GET", web.DirectoryHandler("./static/", new(web.ServeFileOptions))))
 	server.Run(port, h)
 }

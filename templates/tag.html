@@ -1,7 +1,21 @@
 {{>header.mustache}}
 <div class="content">
+	<div class="page-header">
+		<h1>What did you do?</h1>
+	</div>
 	<div class="row">
 		<div id="groups" class="span10">
+			<form class="form-stacked" method="POST" action="/api/tag/rename/">
+				<input type="hidden" name="oldTag" value="{{tag}}" />
+				<div class="clearfix">
+					<div class="input">
+						<input class="medium" id="nameField" name="newTag" size="30" type="text" />
+					</div>
+				</div>
+				<div>
+					<input type="submit" class="btn primary" value="Rename" />
+				</div>
+			</form>
 			{{#entry_groups}}
 			<div class="group" id="{{ Key }}">
 			<h1>{{ PrettyGroupDate }} <small>{{ PrettyTimeOfDay }}</small></h1>
@@ -24,6 +38,11 @@ $(function() {
 		<div class="span4">
 			<h3>Tags and People</h3>
 			<ul id="tagList"></ul>
+			<p><a id="reset" href="#">Reset</a></p>
+		</div>
+	</div>
+	<div class="row">
+		<div class="span8">
 		</div>
 	</div>
 </div>
