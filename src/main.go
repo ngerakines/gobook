@@ -38,26 +38,9 @@ func createEntry(req *web.Request) {
 }
 
 func displayArchive(req *web.Request) {
-
-	c := session.DB("gobook").C("items")
-	var result []*Item
-	iter := c.Find(nil).Sort(bson.M{ "when": -1}).Limit(250).Iter()
-	c_err := iter.All(&result)
-
-	if c_err != nil {
-		log.Println(c_err)
-	}
-	for index, item := range result {
-		log.Println(index)
-		log.Println(item)
-		log.Println(item.When)
-	}
-
+	result := getItems(nil, 250)
 	groupedItems := groupItems(result)
-	log.Println(groupedItems)
-
 	flatItemGroups := flattenItemGroups(groupedItems)
-	// log.Println(flatItemGroups)
 
 	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
 	params := make(map[string]interface{})
@@ -77,13 +60,25 @@ func displayTag(req *web.Request) {
 	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
 	params := make(map[string]interface{})
 	if tag, ok := req.URLParam["tag"]; ok {
-		log.Println(tag)
-		// entries := getEntriesFromTag(tag)
-		// entryGroups := flattenEntryGroups(groupEntries(entries))
-		// params["tag"] = tag
-		// params["entry_groups"] = entryGroups
+		result := getItems(bson.M{"tags": bson.M{"$in": []string{tag}}}, 1000)
+		groupedItems := groupItems(result)
+		params["tag"] = tag
+		params["entry_groups"] = flattenItemGroups(groupedItems)
+
 	}
 	io.WriteString(w, RenderFile("templates/tag.html", params))
+}
+
+func getItems(query bson.M, limit int) []*Item {
+	c := session.DB("gobook").C("items")
+	var result []*Item
+	iter := c.Find(query).Sort(bson.M{ "when": -1}).Limit(limit).Iter()
+	c_err := iter.All(&result)
+
+	if c_err != nil {
+		log.Println(c_err)
+	}
+	return result
 }
 
 func displayEntry(req *web.Request) {
