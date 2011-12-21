@@ -1,0 +1,92 @@
+{{>header.mustache}}
+<div class="content">
+	<div class="page-header">
+		<h1>Summary of December 2011</h1>
+	</div>
+	<div class="row">
+		<div id="groups" class="span14">
+			<h1>Tags Used</h1>
+			<p>
+				<a style="font-size: 300%;" href="#">meeting</a>
+				<a style="font-size: 275%;" href="#">meeting</a>
+				<a style="font-size: 250%;" href="#">meeting</a>
+				<a style="font-size: 250%;" href="#">meeting</a>
+				<a style="font-size: 200%;" href="#">meeting</a>
+				<a style="font-size: 200%;" href="#">meeting</a>
+				<a style="font-size: 200%;" href="#">meeting</a>
+				<a style="font-size: 200%;" href="#">meeting</a>
+				<a style="font-size: 175%;" href="#">meeting</a>
+				<a style="font-size: 175%;" href="#">meeting</a>
+				<a style="font-size: 175%;" href="#">meeting</a>
+				<a style="font-size: 175%;" href="#">meeting</a>
+				<a style="font-size: 100%;" href="#">meeting</a>
+			</p>
+		</div>
+		<!-- <div class="span4">
+			<h3>Tags and People</h3>
+			<ul id="tagList"></ul>
+			<p><a id="reset" href="#">Reset</a></p>
+		</div> -->
+	</div>
+	<div class="row">
+		<div class="span8">
+		</div>
+	</div>
+</div>
+<script language="JavaScript" type="text/javascript">
+$(document).ready(function(){
+	renderTagsList();
+
+	/* $(".person").click(function () {
+		var tag = $(this).text()
+		$(this).effect("highlight", {}, 3000);
+		$.map(groups, function(value, group_id) {
+			if (value['people'].indexOf(tag) != -1) {
+				$("#" + group_id).show();
+				$.each(value['entries'], function(index, entry_id) { 
+					if (entries[entry_id]['people'].indexOf(tag) != -1) {
+						$("#entry_" + entry_id).show();
+					} else {
+						$("#entry_" + entry_id).fadeOut("slow");
+					}
+				});
+			} else {
+				$("#" + group_id).fadeOut("slow");
+			}
+		});
+	});
+
+	$(".tag").click(function () {
+		var tag = $(this).text()
+		$(this).effect("highlight", {}, 3000);
+		$.map(groups, function(value, group_id) {
+			if (value['tags'].indexOf(tag) != -1) {
+				$("#" + group_id).show();
+				$.each(value['entries'], function(index, entry_id) { 
+					if (entries[entry_id]['tags'].indexOf(tag) != -1) {
+						$("#entry_" + entry_id).show();
+					} else {
+						$("#entry_" + entry_id).fadeOut("slow");
+					}
+				});
+			} else {
+				$("#" + group_id).fadeOut("slow");
+			}
+		});
+	}); */
+
+	$('#reset').click(function() {
+		$.map(groups, function(value, key) {
+			$("#" + key).show();
+			$.each(value['entries'], function(index, entry_id) {
+				$("#entry_" + entry_id).show();
+			});
+		});
+	});
+
+	$(".twipsy").twipsy({
+		live: true
+	});
+});
+</script>
+{{>footer.mustache}}
