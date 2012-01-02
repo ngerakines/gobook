@@ -19,19 +19,21 @@
 			{{#entry_groups}}
 			<div class="group" id="{{ Key }}">
 			<h1>{{ PrettyGroupDate }} <small>{{ PrettyTimeOfDay }}</small></h1>
-			{{#Entries}}
-			<div id="entry_{{ Id }}" class="entry">
-				<div class="entryText">
+                        {{#GetItems}}
+                        {{#Item}}
+                        <div id="entry_{{ItemId}}" class="entry">
+                                <div class="entryText">
 <span style="position: relative; top:0; right:0; float: right;" class="entryText-menu twipsy" title="{{PrettyDate}}">More</span>
 {{{PrettyMessage}}}
-				</div>
-			</div>
+                                </div>
+                        </div>
 <script language="JavaScript" type="text/javascript">
 $(function() {
-	renderTags("{{ Id }}", {{#Tags}}"{{Value}}", {{/Tags}} "On {{ PrettyDate}}");
+        renderTags("{{ItemId}}", {{#ItemTags}}"{{Value}}", {{/ItemTags}} "On {{PrettyDate}}");
 });
 </script>
-			{{/Entries}}
+                        {{/Item}}
+                        {{/GetItems}}
 			</div>
 			{{/entry_groups}}
 		</div>

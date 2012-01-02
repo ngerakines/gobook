@@ -1,31 +1,35 @@
 {{>header.mustache}}
 <div class="content">
+	<div class="page-header">
+		<h1>Summary of December 2011</h1>
+	</div>
 	<div class="row">
-		<div id="groups" class="span10">
-			{{#entry_groups}}
-			<div class="group" id="{{ Key }}">
-			<h1>{{ PrettyGroupDate }} <small>{{ PrettyTimeOfDay }}</small></h1>
-			{{#GetItems}}
-			{{#Item}}
-			<div id="entry_{{ItemId}}" class="entry">
-				<div class="entryText">
-<span style="position: relative; top:0; right:0; float: right;" class="entryText-menu twipsy" title="{{PrettyDate}}">More</span>
-{{{PrettyMessage}}}
-				</div>
-			</div>
-<script language="JavaScript" type="text/javascript">
-$(function() {
-	renderTags("{{ItemId}}", {{#ItemTags}}"{{Value}}", {{/ItemTags}} "On {{PrettyDate}}");
-});
-</script>
-			{{/Item}}
-			{{/GetItems}}
-			</div>
-			{{/entry_groups}}
+		<div id="groups" class="span14">
+			<h1>Tags Used</h1>
+			<p>
+				<a style="font-size: 300%;" href="#">meeting</a>
+				<a style="font-size: 275%;" href="#">meeting</a>
+				<a style="font-size: 250%;" href="#">meeting</a>
+				<a style="font-size: 250%;" href="#">meeting</a>
+				<a style="font-size: 200%;" href="#">meeting</a>
+				<a style="font-size: 200%;" href="#">meeting</a>
+				<a style="font-size: 200%;" href="#">meeting</a>
+				<a style="font-size: 200%;" href="#">meeting</a>
+				<a style="font-size: 175%;" href="#">meeting</a>
+				<a style="font-size: 175%;" href="#">meeting</a>
+				<a style="font-size: 175%;" href="#">meeting</a>
+				<a style="font-size: 175%;" href="#">meeting</a>
+				<a style="font-size: 100%;" href="#">meeting</a>
+			</p>
 		</div>
-		<div class="span4">
+		<!-- <div class="span4">
 			<h3>Tags and People</h3>
 			<ul id="tagList"></ul>
+			<p><a id="reset" href="#">Reset</a></p>
+		</div> -->
+	</div>
+	<div class="row">
+		<div class="span8">
 		</div>
 	</div>
 </div>

@@ -2,56 +2,122 @@
 package main
 
 import (
+	"fmt"
 	"time"
 	"bytes"
+	"sort"
 	"strings"
 	"strconv"
+	"launchpad.net/gobson/bson"
+	// "launchpad.net/mgo"
 	"github.com/russross/blackfriday"
 )
 
-type Entry struct {
-	Id, Message string
-	When int64
+type Item struct {
+	Message, Extra string
+	Tags []string
+	When bson.MongoTimestamp
 }
 
-type EntryGroup struct {
+type Note struct {
+	Message, Extra string
+	Parent bson.ObjectId
+	When bson.Timestamp
+}
+
+func (item *Item) String() string {
+	return fmt.Sprintf("%s | %s | %s | %b", item.Message, item.Extra, item.Tags, int64(item.When))
+}
+
+func createItem(Message, Extra string, Tags []string, When int64) {
+	c := session.DB("gobook").C("items")
+	c_err := c.Insert(&Item{Message, Extra, Tags, bson.MongoTimestamp(When)})
+	if c_err != nil {
+		panic(c_err)
+	}
+}
+
+type ItemGroup struct {
 	Key string
-	Entries []*Entry
+	Items []*Item
 }
 
-type EntryTag struct {
+func (itemGroup *ItemGroup) String() string {
+	return fmt.Sprintf("%s | %b | %s", itemGroup.Key, len(itemGroup.Items), itemGroup.Items)
+}
+
+func (itemGroup *ItemGroup) AddItem(item *Item) {
+	if itemGroup.Items == nil {
+		itemGroup.Items = make([]*Item, 0, 100)
+	}
+	n := len(itemGroup.Items)
+	if n + 1 > cap(itemGroup.Items) {
+		s := make([]*Item, n, 2 * n + 1)
+		copy(s, itemGroup.Items)
+		itemGroup.Items = s
+	}
+	itemGroup.Items = itemGroup.Items[0 : n + 1]
+	itemGroup.Items[n] = item
+}
+
+func groupItems(items []*Item) map[string]*ItemGroup {
+	groups := make(map[string]*ItemGroup)
+	for _, item := range items {
+		tod, utc_time := getTimeOfDay(int64(item.When))
+		key := fmt.Sprintf("")
+		if utc_time.Day < 10 {
+			key = fmt.Sprintf("%d-%d-0%d-%d", utc_time.Year, utc_time.Month, utc_time.Day, tod)
+		} else {
+			key = fmt.Sprintf("%d-%d-%d-%d", utc_time.Year, utc_time.Month, utc_time.Day, tod)
+		}
+		itemGroup, ok := groups[key]
+		if ok == false {
+			itemGroup = new(ItemGroup)
+			itemGroup.Key = key
+			groups[key] = itemGroup
+		}
+		itemGroup.AddItem(item)
+	}
+	return groups
+}
+
+func flattenItemGroups(itemGroups map[string]*ItemGroup) []*ItemGroup {
+	keys := make([]string, len(itemGroups))
+	keyIndex := 0
+	for key, _ := range itemGroups {
+		keys[keyIndex] = key
+		keyIndex++
+	}
+	sort.Strings(keys)
+
+	groups := make([]*ItemGroup, len(itemGroups))
+	j := len(keys) - 1
+	for _, key := range keys {
+		groups[j] = itemGroups[key]
+		j--
+	}
+	return groups
+}
+
+type ItemTag struct {
 	Value string
 	count int
 }
 
-func (entryGroup *EntryGroup) AddEntry(entry *Entry) {
-	if entryGroup.Entries == nil {
-		entryGroup.Entries = make([]*Entry, 0, 100)
-	}
-	n := len(entryGroup.Entries)
-	if n + 1 > cap(entryGroup.Entries) {
-		s := make([]*Entry, n, 2 * n + 1)
-		copy(s, entryGroup.Entries)
-		entryGroup.Entries = s
-	}
-	entryGroup.Entries = entryGroup.Entries[0 : n + 1]
-	entryGroup.Entries[n] = entry
-}
-
-func (entry Entry) PrettyDate() string {
-	utc_time := time.SecondsToLocalTime(entry.When)
+func (item Item) PrettyDate() string {
+	utc_time := time.SecondsToLocalTime(int64(item.When))
 	value := utc_time.Format(time.RFC822)
 	return value
 }
 
-func (entry Entry) PrettyMessage() string {
-	buffer := bytes.NewBufferString(entry.Message)
+func (item Item) PrettyMessage() string {
+	buffer := bytes.NewBufferString(item.Message)
 	output := blackfriday.MarkdownCommon(buffer.Bytes())
 	return string(output)
 }
 
-func (entryGroup EntryGroup) PrettyGroupDate() string {
-	parts := strings.Split(entryGroup.Key, "-")
+func (itemGroup ItemGroup) PrettyGroupDate() string {
+	parts := strings.Split(itemGroup.Key, "-")
 	when := time.LocalTime()
 	if value, err := strconv.Atoi64(parts[0]); err == nil {
 		when.Year = value
@@ -66,8 +132,8 @@ func (entryGroup EntryGroup) PrettyGroupDate() string {
 	return retval
 }
 
-func (entryGroup EntryGroup) PrettyTimeOfDay() string {
-	parts := strings.Split(entryGroup.Key, "-")
+func (itemGroup ItemGroup) PrettyTimeOfDay() string {
+	parts := strings.Split(itemGroup.Key, "-")
 	if len(parts) != 4 {
 		return "Unknown"
 	}
@@ -86,11 +152,30 @@ func (entryGroup EntryGroup) PrettyTimeOfDay() string {
 	return "Unknown"
 }
 
-func (entry Entry) Tags() []EntryTag {
-	tagStrings := getTags(entry.Id)
-	tags := make([]EntryTag, len(tagStrings))
+func (item Item) ItemTags() []ItemTag {
+	tagStrings := item.Tags
+	tags := make([]ItemTag, len(tagStrings))
 	for index, tag := range tagStrings {
-		tags[index] = EntryTag{tag, 0}
+		tags[index] = ItemTag{tag, 0}
 	}
 	return tags
 }
+
+type ItemGroupWrapper struct {
+	Key string
+	Id int
+	Item *Item
+}
+
+func (itemGroup *ItemGroup) GetItems() []ItemGroupWrapper {
+	itemGroupWrappers := make([]ItemGroupWrapper, len(itemGroup.Items))
+	for index, item := range itemGroup.Items {
+		itemGroupWrappers[index] = ItemGroupWrapper{itemGroup.Key, index, item}
+	}
+	return itemGroupWrappers
+}
+
+func (itemGroupWrapper ItemGroupWrapper) ItemId() string {
+	return fmt.Sprintf("%s-%b", itemGroupWrapper.Key, itemGroupWrapper.Id)
+}
+
