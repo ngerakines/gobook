@@ -49,16 +49,15 @@
       }
 
       /* Styles you shouldn't keep as they are for displaying this base example only */
-      .content .span10,
+      /* .content .span10,
       .content .span4 {
         min-height: 500px;
-      }
+      } */
       /* Give a quick and non-cross-browser friendly divider */
-      .content .span4 {
+      /* .content .span4 {
         margin-left: 0;
         padding-left: 19px;
-        border-left: 1px solid #eee;
-      }
+      } */
 
       .topbar .btn {
         border: 0;
@@ -82,15 +81,25 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
     <script src="/static/app.js"></script>
+    <script src="/static/bootstrap/js/bootstrap-dropdown.js"></script>
     <script src="/static/bootstrap/js/bootstrap-twipsy.js"></script>
     <script src="/static/bootstrap/js/bootstrap-popover.js"></script>
   </head>
   <body>
     <div class="topbar">
       <div class="fill">
-        <div class="container">
+        <div class="container" data-dropdown="dropdown">
           <a class="brand" href="/">Logbook</a>
           <ul class="nav">
+          <li class="dropdown">
+              <a href="#" class="dropdown-toggle">Calendar</a>
+              <ul class="dropdown-menu">
+                <li><a href="/calendar/2012">2012</a></li>
+                <li><a href="/calendar/2011">2011</a></li>
+                <li class="divider"></li>
+                <li><a href="/calendar">All</a></li>
+              </ul>
+            </li>
             <li><a href="/archive">Archive</a></li>
           </ul>
         </div>

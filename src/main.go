@@ -81,7 +81,7 @@ func getItems(query bson.M, limit int) []*Item {
 	return result
 }
 
-func displayEntry(req *web.Request) {
+/* func displayEntry(req *web.Request) {
 	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
         params := make(map[string]interface{})
         if id, ok := req.URLParam["id"]; ok {
@@ -90,12 +90,12 @@ func displayEntry(req *web.Request) {
                 // params["entry"] = entry
         }
         io.WriteString(w, RenderFile("templates/entry.html", params))
-}
+} */
 
-func displayMonth(req *web.Request) {
+/* func displayMonth(req *web.Request) {
 	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
 	io.WriteString(w, RenderFile("templates/month.html", map[string]string{}))
-}
+} */
 
 func migrate(req *web.Request) {
 
@@ -152,10 +152,13 @@ func getTags(id string) []string {
 
 
 func main() {
-	/* log.Println(splitTags("Nick Carolyn Vanessa Hannah"))
+	/*
+	log.Println(splitTags("Nick Carolyn Vanessa Hannah"))
 	log.Println(splitTags("\"Hello World\""))
 	log.Println(splitTags("\"@Carolyn Gerakines\" #dinner #date"))
-	log.Println(splitTags("#meeting \"@Steve McGarrity\" #port #battle.net    \"\"")) */
+	log.Println(splitTags("#meeting \"@Steve McGarrity\" #port #battle.net    \"\""))
+	log.Println(splitTags("#api-wow +3h"))
+	*/
 
 	session, session_err = mgo.Mongo("localhost")
 	if session_err != nil {
@@ -177,7 +180,14 @@ func main() {
 	h := web.FormHandler(10000, false,
 		web.NewRouter().
 			Register("/", "GET", displayIndex, "POST", createEntry).
-			Register("/migrate", "GET", migrate).
+			Register("/view/<entry:.*>", "GET", displayEntry).
+			Register("/thread/<id:.*>", "GET", displayThread).
+			Register("/calendar", "GET", displayCalendar).
+			Register("/calendar/<year:.*>/<month:.*>/<day:.*>", "GET", displayDay).
+			Register("/calendar/<year:.*>/<month:.*>", "GET", displayMonth).
+			Register("/calendar/<year:.*>", "GET", displayYear).
+
+			// Register("/migrate", "GET", migrate).
 			Register("/archive", "GET", displayArchive).
 			Register("/tag/<tag:.*>", "GET", displayTag).
 			// Register("/entry/<id:.*>", "GET", displayEntry).
@@ -185,5 +195,50 @@ func main() {
 			Register("/summary/<year:.*>/<month:.*>", "GET", displayMonth).
 			Register("/static/<path:.*>", "GET", web.DirectoryHandler("./static/", new(web.ServeFileOptions))))
 	server.Run(port, h)
+}
+
+func displayEntry(req *web.Request) {
+	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
+	io.WriteString(w, RenderFile("templates/entry.html", map[string]string{}))
+}
+
+func displayThread(req *web.Request) {
+	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
+	io.WriteString(w, RenderFile("templates/thread.html", map[string]string{}))
+}
+
+func displayCalendar(req *web.Request) {
+
+	job := mgo.MapReduce{
+		Map:      "function() { day = new Date(this.when.i * 1000); emit(day.getFullYear().toString() + '-' + day.getMonth().toString() + '-' + day.getDate().toString(), 1); }",
+		// Reduce:   "function(key, values) { var count = 0; values.forEach(function(v) { count += v['count']; }); return count; }",
+		Reduce:   "function(key, values) { return Array.sum(values) }",
+	}
+	var result []struct { Id string "_id"; Count int "value" }
+	collection := session.DB("gobook").C("items")
+	_, err := collection.Find(nil).MapReduce(job, &result)
+
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(result);
+
+	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
+	io.WriteString(w, RenderFile("templates/calendar.html", map[string]string{}))
+}
+
+func displayYear(req *web.Request) {
+	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
+	io.WriteString(w, RenderFile("templates/year.html", map[string]string{}))
+}
+
+func displayMonth(req *web.Request) {
+	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
+	io.WriteString(w, RenderFile("templates/month.html", map[string]string{}))
+}
+
+func displayDay(req *web.Request) {
+	w := req.Respond(web.StatusOK, web.HeaderContentType, "text/html; charset=\"utf-8\"")
+	io.WriteString(w, RenderFile("templates/day.html", map[string]string{}))
 }
 
